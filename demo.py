@@ -40,7 +40,8 @@ def main(args):
         strength = args.strength,
         num_inference_steps = args.num_inference_steps,
         guidance_scale = args.guidance_scale,
-        eta = args.eta
+        eta = args.eta,
+        unprompt = args.unprompt
     )
     cv2.imwrite(args.output, image)
 
@@ -70,5 +71,7 @@ if __name__ == "__main__":
     parser.add_argument("--mask", type=str, default=None, help="mask of the region to inpaint on the initial image")
     # output name
     parser.add_argument("--output", type=str, default="output.png", help="output image name")
+    # unprompt
+    parser.add_argument("--unprompt", type=str, default="", help="negative prompt")
     args = parser.parse_args()
     main(args)
