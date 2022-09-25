@@ -63,7 +63,7 @@ def main(args):
     # inpainting
     parser2.add_argument("--mask", type=str, default=None, help="mask of the region to inpaint on the initial image")
     # output name
-    parser2.add_argument("--output", type=str, default="output.png", help="output image name, supports {step} placeholder")
+    parser2.add_argument("--output", type=str, default="output.png", help="output image name, supports {seed} and {step} placeholders")
     # unprompt
     parser2.add_argument("--unprompt", type=str, default="", help="negative prompt")
 
@@ -79,7 +79,7 @@ def main(args):
 def run(args, engine):
     engine(
         prompt = args.prompt,
-        output = args.output,
+        output = args.output.format(seed = args.seed),
         init_image = None if args.init_image is None else cv2.imread(args.init_image),
         mask = None if args.mask is None else cv2.imread(args.mask, 0),
         strength = args.strength,
