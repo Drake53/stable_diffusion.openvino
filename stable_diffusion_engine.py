@@ -9,6 +9,7 @@ from tqdm import tqdm
 from huggingface_hub import hf_hub_download
 from diffusers import LMSDiscreteScheduler, PNDMScheduler
 import cv2
+import os
 
 
 def result(var):
@@ -18,13 +19,15 @@ def result(var):
 class StableDiffusionEngine:
     def __init__(
             self,
-            scheduler,
+            scheduler_txt2img,
+            scheduler_img2img,
             model="bes-dev/stable-diffusion-v1-4-openvino",
             tokenizer="openai/clip-vit-large-patch14",
             device="CPU"
     ):
         self.tokenizer = CLIPTokenizer.from_pretrained(tokenizer)
-        self.scheduler = scheduler
+        self.scheduler_txt2img = scheduler_txt2img
+        self.scheduler_img2img = scheduler_img2img
         # models
         self.core = Core()
         # text features
@@ -108,8 +111,17 @@ class StableDiffusionEngine:
             num_inference_steps = 32,
             guidance_scale = 7.5,
             eta = 0.0,
-            unprompt = ""
+            unprompt = "",
+            seed = None
     ):
+        if seed is not None:
+            np.random.seed(seed)
+
+        if init_image is None:
+            self.scheduler = self.scheduler_txt2img
+        else:
+            self.scheduler = self.scheduler_img2img
+
         # extract condition
         tokens = self.tokenizer(
             prompt,
@@ -207,6 +219,8 @@ class StableDiffusionEngine:
                 latents = ((init_latents_proper * mask) + (latents * (1 - mask)))[0]
 
             if "{step}" in output:
+                print("saving image '{name}'...".format(name = os.path.basename(output)))
+
                 image = result(self.vae_decoder.infer_new_request({
                     "latents": np.expand_dims(latents, 0)
                 }))
@@ -218,7 +232,11 @@ class StableDiffusionEngine:
                 step = i + 1
                 cv2.imwrite(output.format(step = step), image)
 
+                print("image saved")
+
         if "{step}" not in output:
+            print("saving image '{name}'...".format(name = os.path.basename(output)))
+
             image = result(self.vae_decoder.infer_new_request({
                 "latents": np.expand_dims(latents, 0)
             }))
@@ -228,3 +246,5 @@ class StableDiffusionEngine:
             image = (image[0].transpose(1, 2, 0)[:, :, ::-1] * 255).astype(np.uint8)
 
             cv2.imwrite(output, image)
+
+            print("image saved")
