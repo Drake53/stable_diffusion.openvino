@@ -138,8 +138,10 @@ class StableDiffusionEngine:
         extra_set_kwargs = {}
         offset = 0
         if accepts_offset:
-            offset = 1
-            extra_set_kwargs["offset"] = 1
+            #offset = 1
+            #extra_set_kwargs["offset"] = 1
+            offset = 0
+            extra_set_kwargs["offset"] = 0
 
         self.scheduler.set_timesteps(num_inference_steps, **extra_set_kwargs)
 

@@ -4,7 +4,7 @@ import os
 # engine
 from stable_diffusion_engine import StableDiffusionEngine
 # scheduler
-from diffusers import LMSDiscreteScheduler, PNDMScheduler
+from diffusers import DDIMScheduler, LMSDiscreteScheduler, PNDMScheduler
 # utils
 import cv2
 import numpy as np
@@ -14,12 +14,22 @@ def main(args):
     if args.seed is not None:
         np.random.seed(args.seed)
     if args.init_image is None:
-        scheduler = LMSDiscreteScheduler(
-            beta_start=args.beta_start,
-            beta_end=args.beta_end,
-            beta_schedule=args.beta_schedule,
-            tensor_format="np"
-        )
+        if args.scheduler.upper() == "LMS":
+            scheduler = LMSDiscreteScheduler(
+                beta_start=args.beta_start,
+                beta_end=args.beta_end,
+                beta_schedule=args.beta_schedule,
+                tensor_format="np"
+            )
+        elif args.scheduler.upper() == "DDIM":
+            scheduler = DDIMScheduler(
+                beta_start=args.beta_start,
+                beta_end=args.beta_end,
+                beta_schedule=args.beta_schedule,
+                tensor_format="np"
+            )
+        else:
+            raise ValueError("Scheduler must be one of: [LMS, DDIM]")
     else:
         scheduler = PNDMScheduler(
             beta_start=args.beta_start,
@@ -73,5 +83,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=str, default="output.png", help="output image name")
     # unprompt
     parser.add_argument("--unprompt", type=str, default="", help="negative prompt")
+    # scheduler
+    parser.add_argument("--scheduler", type=str, default="LMS", help="scheduler: [LMS, DDIM], will use PNDM for img2img")
     args = parser.parse_args()
     main(args)
