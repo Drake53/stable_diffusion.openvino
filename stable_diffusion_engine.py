@@ -101,6 +101,7 @@ class StableDiffusionEngine:
     def __call__(
             self,
             prompt,
+            output,
             init_image = None,
             mask = None,
             strength = 0.5,
@@ -205,11 +206,25 @@ class StableDiffusionEngine:
                 init_latents_proper = self.scheduler.add_noise(init_latents, noise, t)
                 latents = ((init_latents_proper * mask) + (latents * (1 - mask)))[0]
 
-        image = result(self.vae_decoder.infer_new_request({
-            "latents": np.expand_dims(latents, 0)
-        }))
+            if "{step}" in output:
+                image = result(self.vae_decoder.infer_new_request({
+                    "latents": np.expand_dims(latents, 0)
+                }))
 
-        # convert tensor to opencv's image format
-        image = (image / 2 + 0.5).clip(0, 1)
-        image = (image[0].transpose(1, 2, 0)[:, :, ::-1] * 255).astype(np.uint8)
-        return image
+                # convert tensor to opencv's image format
+                image = (image / 2 + 0.5).clip(0, 1)
+                image = (image[0].transpose(1, 2, 0)[:, :, ::-1] * 255).astype(np.uint8)
+                
+                step = i + 1
+                cv2.imwrite(output.format(step = step), image)
+
+        if "{step}" not in output:
+            image = result(self.vae_decoder.infer_new_request({
+                "latents": np.expand_dims(latents, 0)
+            }))
+
+            # convert tensor to opencv's image format
+            image = (image / 2 + 0.5).clip(0, 1)
+            image = (image[0].transpose(1, 2, 0)[:, :, ::-1] * 255).astype(np.uint8)
+
+            cv2.imwrite(output, image)

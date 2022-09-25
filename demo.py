@@ -43,8 +43,9 @@ def main(args):
         scheduler = scheduler,
         tokenizer = args.tokenizer
     )
-    image = engine(
+    engine(
         prompt = args.prompt,
+        output = args.output,
         init_image = None if args.init_image is None else cv2.imread(args.init_image),
         mask = None if args.mask is None else cv2.imread(args.mask, 0),
         strength = args.strength,
@@ -53,7 +54,6 @@ def main(args):
         eta = args.eta,
         unprompt = args.unprompt
     )
-    cv2.imwrite(args.output, image)
 
 
 if __name__ == "__main__":
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     # inpainting
     parser.add_argument("--mask", type=str, default=None, help="mask of the region to inpaint on the initial image")
     # output name
-    parser.add_argument("--output", type=str, default="output.png", help="output image name")
+    parser.add_argument("--output", type=str, default="output.png", help="output image name, supports {step} placeholder")
     # unprompt
     parser.add_argument("--unprompt", type=str, default="", help="negative prompt")
     # scheduler
