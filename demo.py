@@ -53,18 +53,18 @@ def main(args):
     # randomizer params
     parser2.add_argument("--seed", type=int, default=None, help="random seed for generating consistent images per prompt")
     # diffusion params
-    parser2.add_argument("--num-inference-steps", type=int, default=32, help="num inference steps")
+    parser2.add_argument("--num-inference-steps", type=int, default=20, help="num inference steps")
     parser2.add_argument("--guidance-scale", type=float, default=7.5, help="guidance scale")
     parser2.add_argument("--eta", type=float, default=0.0, help="eta")
     # prompt
-    parser2.add_argument("--prompt", type=str, default="Street-art painting of Emilia Clarke in style of Banksy, photorealism", help="prompt")
+    parser2.add_argument("--prompt", type=str, help="prompt")
     # img2img params
     parser2.add_argument("--init-image", type=str, default=None, help="path to initial image")
     parser2.add_argument("--strength", type=float, default=0.5, help="how strong the initial image should be noised [0.0, 1.0]")
     # inpainting
     parser2.add_argument("--mask", type=str, default=None, help="mask of the region to inpaint on the initial image")
     # output name
-    parser2.add_argument("--output", type=str, default="output.png", help="output image name, supports {seed} and {step} placeholders")
+    parser2.add_argument("--output", type=str, help="output image name, supports {seed} and {step} placeholders")
     # unprompt
     parser2.add_argument("--unprompt", type=str, default="", help="negative prompt")
 
