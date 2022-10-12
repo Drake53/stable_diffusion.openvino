@@ -41,12 +41,13 @@ def main(args):
 
     engine = StableDiffusionEngine(
         model = args.model,
+        model_revision = args.model_revision,
         scheduler_txt2img = scheduler_txt2img,
         scheduler_img2img = scheduler_img2img,
         tokenizer = args.tokenizer
     )
 
-    print("model engine")
+    print("engine initialized")
 
     parser2 = argparse.ArgumentParser()
     # randomizer params
@@ -95,6 +96,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # pipeline configure
     parser.add_argument("--model", type=str, default="bes-dev/stable-diffusion-v1-4-openvino", help="model name")
+    parser.add_argument("--model-revision", type=str, default=None, help="model revision")
     # scheduler
     parser.add_argument("--scheduler", type=str, default="LMS", help="scheduler: [LMS, DDIM], will use PNDM for img2img")
     # scheduler params

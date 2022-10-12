@@ -22,6 +22,7 @@ class StableDiffusionEngine:
             scheduler_txt2img,
             scheduler_img2img,
             model="bes-dev/stable-diffusion-v1-4-openvino",
+            model_revision=None,
             tokenizer="openai/clip-vit-large-patch14",
             device="CPU"
     ):
@@ -32,27 +33,27 @@ class StableDiffusionEngine:
         self.core = Core()
         # text features
         self._text_encoder = self.core.read_model(
-            hf_hub_download(repo_id=model, filename="text_encoder.xml"),
-            hf_hub_download(repo_id=model, filename="text_encoder.bin")
+            hf_hub_download(repo_id=model, filename="text_encoder.xml", revision=model_revision),
+            hf_hub_download(repo_id=model, filename="text_encoder.bin", revision=model_revision)
         )
         self.text_encoder = self.core.compile_model(self._text_encoder, device)
         # diffusion
         self._unet = self.core.read_model(
-            hf_hub_download(repo_id=model, filename="unet.xml"),
-            hf_hub_download(repo_id=model, filename="unet.bin")
+            hf_hub_download(repo_id=model, filename="unet.xml", revision=model_revision),
+            hf_hub_download(repo_id=model, filename="unet.bin", revision=model_revision)
         )
         self.unet = self.core.compile_model(self._unet, device)
         self.latent_shape = tuple(self._unet.inputs[0].shape)[1:]
         # decoder
         self._vae_decoder = self.core.read_model(
-            hf_hub_download(repo_id=model, filename="vae_decoder.xml"),
-            hf_hub_download(repo_id=model, filename="vae_decoder.bin")
+            hf_hub_download(repo_id=model, filename="vae_decoder.xml", revision=model_revision),
+            hf_hub_download(repo_id=model, filename="vae_decoder.bin", revision=model_revision)
         )
         self.vae_decoder = self.core.compile_model(self._vae_decoder, device)
         # encoder
         self._vae_encoder = self.core.read_model(
-            hf_hub_download(repo_id=model, filename="vae_encoder.xml"),
-            hf_hub_download(repo_id=model, filename="vae_encoder.bin")
+            hf_hub_download(repo_id=model, filename="vae_encoder.xml", revision=model_revision),
+            hf_hub_download(repo_id=model, filename="vae_encoder.bin", revision=model_revision)
         )
         self.vae_encoder = self.core.compile_model(self._vae_encoder, device)
         self.init_image_shape = tuple(self._vae_encoder.inputs[0].shape)[2:]
