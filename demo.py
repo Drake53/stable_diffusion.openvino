@@ -58,6 +58,8 @@ def main(args):
     parser2.add_argument("--eta", type=float, default=0.0, help="eta")
     # prompt
     parser2.add_argument("--prompt", type=str, help="prompt")
+    parser2.add_argument("--unprompt", type=str, default="", help="negative prompt")
+    parser2.add_argument("--promptparser", type=str, default=None, help="prompt parser")
     # img2img params
     parser2.add_argument("--init-image", type=str, default=None, help="path to initial image")
     parser2.add_argument("--strength", type=float, default=0.5, help="how strong the initial image should be noised [0.0, 1.0]")
@@ -65,8 +67,6 @@ def main(args):
     parser2.add_argument("--mask", type=str, default=None, help="mask of the region to inpaint on the initial image")
     # output name
     parser2.add_argument("--output", type=str, help="output image name, supports {seed} and {step} placeholders")
-    # unprompt
-    parser2.add_argument("--unprompt", type=str, default="", help="negative prompt")
 
     while True:
         run_input = input()
@@ -79,15 +79,16 @@ def main(args):
 
 def run(args, engine):
     engine(
-        prompt = args.prompt,
         output = args.output.format(seed = args.seed),
+        prompt = args.prompt,
+        unprompt = args.unprompt,
+        promptparser = args.promptparser,
         init_image = None if args.init_image is None else cv2.imread(args.init_image),
         mask = None if args.mask is None else cv2.imread(args.mask, 0),
         strength = args.strength,
         num_inference_steps = args.num_inference_steps,
         guidance_scale = args.guidance_scale,
         eta = args.eta,
-        unprompt = args.unprompt,
         seed = args.seed
     )
 

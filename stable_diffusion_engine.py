@@ -10,6 +10,7 @@ from huggingface_hub import hf_hub_download
 from diffusers import LMSDiscreteScheduler, PNDMScheduler
 import cv2
 import os
+import random
 
 
 def result(var):
@@ -102,26 +103,18 @@ class StableDiffusionEngine:
         latent = (mean + std * np.random.randn(*mean.shape)) * 0.18215
         return latent
 
-    def __call__(
-            self,
-            prompt,
-            output,
-            init_image = None,
-            mask = None,
-            strength = 0.5,
-            num_inference_steps = 32,
-            guidance_scale = 7.5,
-            eta = 0.0,
-            unprompt = "",
-            seed = None
-    ):
-        if seed is not None:
-            np.random.seed(seed)
+    def _parse_prompt(self, prompt, unprompt, promptparser, guidance_scale):
+        if promptparser is not None:
+            if promptparser.upper() == "RANDOMIZER":
+                keyphrases = [keyphrase.strip() for keyphrase in prompt.split(',')]
+                random.shuffle(keyphrases)
+                prompt = ", ".join(keyphrases)
 
-        if init_image is None:
-            self.scheduler = self.scheduler_txt2img
-        else:
-            self.scheduler = self.scheduler_img2img
+                keyphrases = [keyphrase.strip() for keyphrase in unprompt.split(',')]
+                random.shuffle(keyphrases)
+                unprompt = ", ".join(keyphrases)
+            else:
+                raise ValueError("Prompt parser must be one of: ['RANDOMIZER', None]")
 
         # extract condition
         tokens = self.tokenizer(
@@ -146,6 +139,38 @@ class StableDiffusionEngine:
                 self.text_encoder.infer_new_request({"tokens": np.array([tokens_uncond])})
             )
             text_embeddings = np.concatenate((uncond_embeddings, text_embeddings), axis=0)
+
+        return text_embeddings
+
+    def __call__(
+            self,
+            output,
+            prompt,
+            unprompt = "",
+            promptparser = None,
+            init_image = None,
+            mask = None,
+            strength = 0.5,
+            num_inference_steps = 32,
+            guidance_scale = 7.5,
+            eta = 0.0,
+            seed = None
+    ):
+        if seed is None:
+            raise ValueError("Seed must have value")
+        else:
+            np.random.seed(seed)
+            random.seed(seed)
+
+        if init_image is None:
+            self.scheduler = self.scheduler_txt2img
+        else:
+            self.scheduler = self.scheduler_img2img
+            
+        if promptparser is None:
+            initial_text_embeddings = self._parse_prompt(prompt, unprompt, None, guidance_scale)
+        else:
+            initial_text_embeddings = None
 
         # set timesteps
         accepts_offset = "offset" in set(inspect.signature(self.scheduler.set_timesteps).parameters.keys())
@@ -196,6 +221,11 @@ class StableDiffusionEngine:
             if isinstance(self.scheduler, LMSDiscreteScheduler):
                 sigma = self.scheduler.sigmas[i]
                 latent_model_input = latent_model_input / ((sigma**2 + 1) ** 0.5)
+
+            if initial_text_embeddings is not None:
+                text_embeddings = initial_text_embeddings
+            else:
+                text_embeddings = self._parse_prompt(prompt, unprompt, promptparser, guidance_scale)
 
             # predict the noise residual
             noise_pred = result(self.unet.infer_new_request({
