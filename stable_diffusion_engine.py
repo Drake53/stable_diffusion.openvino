@@ -105,7 +105,7 @@ class StableDiffusionEngine:
 
     def _parse_prompt(self, prompt, unprompt, promptparser, guidance_scale):
         if promptparser is not None:
-            if promptparser.upper() == "RANDOMIZER":
+            if promptparser.upper() == "SHUFFLER":
                 keyphrases = [keyphrase.strip() for keyphrase in prompt.split(',')]
                 random.shuffle(keyphrases)
                 prompt = ", ".join(keyphrases)
@@ -114,7 +114,7 @@ class StableDiffusionEngine:
                 random.shuffle(keyphrases)
                 unprompt = ", ".join(keyphrases)
             else:
-                raise ValueError("Prompt parser must be one of: ['RANDOMIZER', None]")
+                raise ValueError("Prompt parser must be one of: ['SHUFFLER', None]")
 
         # extract condition
         tokens = self.tokenizer(
